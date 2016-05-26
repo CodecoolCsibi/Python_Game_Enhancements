@@ -4,7 +4,7 @@ import time
 
 
 def bodygrow(body, head, win):
-
+    # Makes the body,which follows the head[y, x]
     for z in range(len(body)-1, 0, -1):
         body[z] = body[z-1]
         win.addch(body[z][0], body[z][1], "o", curses.color_pair(2))
@@ -13,7 +13,7 @@ def bodygrow(body, head, win):
 
 
 def food(q, head, apple, points, body, speed, pois, poison_ed, win, border):
-
+    #  Food(apple), poison and points handling
     win.addch(apple[0], apple[1], "B", curses.color_pair(2))
     if head[0] == apple[0] and head[1] == apple[1]:
         points += 1
@@ -100,6 +100,7 @@ def forward(head, headC, direct, speed, q):
     elif direct == 8:
         if direct != 5:
             head[0] -= 1
+    # If the speed variable becomes smaller,the snake's speed becomes faster
     time.sleep(speed)
     return head
 
@@ -131,7 +132,8 @@ def start(border, win):
     win.refresh()
 
 
-def difficulty(q, speed, win,border):
+def difficulty(q, speed, win, border):
+    # If the speed variable becomes smaller,the snake's speed becomes faster
     while q == -1:
         q = win.getch()
         start(border, win)
@@ -149,17 +151,23 @@ def difficulty(q, speed, win,border):
 def high_score(poison_ed, score, win):
     win.clear()
     curses.endwin()
-    pos = 9
+    # 6 could be any other number not in (1,2,3,4,5)
+    pos = 6
     h_score = open("highscores.csv", "r")
+    # Readlines reads the enters at the end of rows(\n)
     score_list = list(h_score.readlines())
     h_score.close()
+
     for i in range(len(score_list)-1, -1, -1):
+        # We get the lines without the "\n"-s
         score_list[i] = score_list[i][:-1]
+        # We split the CSV lines by the ","
         score_list[i] = score_list[i].split(",")
         if score >= int(score_list[i][1]):
             pos = i
-    if pos != 9:
+    if pos != 6:
         name = input("\nGratulations! You are the %d. in the Highscores.Please enter your name:" % (pos+1))
+        # We make all the scores under our new  achieved position go down one positon
         for z in range(len(score_list)-1, pos, -1):
             score_list[z][0] = str(score_list[z-1][0])
             score_list[z][1] = int(score_list[z-1][1])
@@ -184,6 +192,7 @@ def high_score(poison_ed, score, win):
 
 
 def confusion(win, q, poison_ed, pois_rounds, head, border, headC, direct):
+    # If the poison is eaten(head[] = pois[]), the snake has inverse controls(turn_confused)
     if poison_ed is False:
         headC, direct = turn(q, head, border, headC, direct)
     else:
@@ -249,7 +258,7 @@ def game():
     win = curses.initscr()
     border = win.getmaxyx()
     title = "SNAKE by Csibi & Dzsoni"
-    speed = 0.10
+    speed = 0.10  # If the speed variable becomes smaller,the snake's speed becomes faster
     head = [int(border[0]/2), int(border[1]/2)]
     body = [head[:]]*3
     q = -1
@@ -270,16 +279,24 @@ def game():
     while q != ord("q"):
         win.clear()
         win.border(1)
+        # Confusion
         win, q, poison_ed, pois_rounds, direct, headC = confusion(win, q, poison_ed, pois_rounds, head, border, headC, direct)
         win.addstr(0, int(border[1]/2)-int(len(title)/2), title, curses.A_BOLD)
+        # Food
         speed, body, apple, pois, points = food(q, head, apple, points, body, speed, pois, poison_ed, win, border)
+        # Forward
         head = forward(head, headC, direct, speed, q)
+        # Bodygrow
         body = bodygrow(body, head, win)
+        # Screen refresh(display moving,and the changes that the other functions did)
         win.addstr(head[0], head[1], headC, curses.color_pair(2))
         win.refresh()
         q = win.getch()
+        # Poison
         poison_ed, pois = poison(q, head, apple, points, body, speed, pois, poison_ed, win, border)
+        # Hitwall
         q = hitWall(win, head, border, q)
+        # Gameover
     poison_ed, q, headC = gameover(poison_ed, q, headC, border, points, win)
 
 
